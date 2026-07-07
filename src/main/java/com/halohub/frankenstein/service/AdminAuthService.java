@@ -10,11 +10,13 @@ import com.halohub.frankenstein.mapper.SysAdminMapper;
 import com.halohub.frankenstein.satoken.StpAdminUtil;
 import com.halohub.frankenstein.vo.AuthInfoVO;
 import com.halohub.frankenstein.vo.LoginVO;
+import com.halohub.frankenstein.vo.RouteMenuVO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class AdminAuthService {
@@ -22,13 +24,16 @@ public class AdminAuthService {
     private final SysAdminMapper sysAdminMapper;
     private final PasswordEncoder passwordEncoder;
     private final LoginFailureService loginFailureService;
+    private final AdminMenuService adminMenuService;
 
     public AdminAuthService(SysAdminMapper sysAdminMapper,
                             PasswordEncoder passwordEncoder,
-                            LoginFailureService loginFailureService) {
+                            LoginFailureService loginFailureService,
+                            AdminMenuService adminMenuService) {
         this.sysAdminMapper = sysAdminMapper;
         this.passwordEncoder = passwordEncoder;
         this.loginFailureService = loginFailureService;
+        this.adminMenuService = adminMenuService;
     }
 
     public LoginVO login(LoginRequest request) {
@@ -81,7 +86,9 @@ public class AdminAuthService {
             throw new BusinessException(CommonErrorCode.ACCOUNT_NOT_FOUND);
         }
         List<String> roles = sysAdminMapper.listRoleCodesByAdminId(adminId);
-        List<String> permissions = sysAdminMapper.listPermCodesByAdminId(adminId);
+        List<String> permissions = adminMenuService.isSuperAdmin(adminId)
+                ? adminMenuService.listAllAdminPermCodes()
+                : sysAdminMapper.listPermCodesByAdminId(adminId);
         return AuthInfoVO.builder()
                 .id(admin.getId())
                 .username(admin.getUsername())
@@ -89,5 +96,10 @@ public class AdminAuthService {
                 .roles(roles)
                 .permissions(permissions)
                 .build();
+    }
+
+    public List<RouteMenuVO> currentMenus(Locale locale) {
+        long adminId = StpAdminUtil.getLoginIdAsLong();
+        return adminMenuService.listMenus(adminId, locale);
     }
 }

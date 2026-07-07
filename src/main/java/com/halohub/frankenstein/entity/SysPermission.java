@@ -19,9 +19,13 @@ public class SysPermission {
     private String permType;
     private Long parentId;
     private String path;
-    private String method;
+    private String component;
+    private String icon;
+    private Integer hidden;
     private Integer sort;
     private Integer status;
+    private String apiPath;
+    private String method;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     @TableLogic
