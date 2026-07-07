@@ -138,7 +138,8 @@ CREATE TABLE IF NOT EXISTS sys_member_role (
 -- ---------------------------------------------------------------------------
 INSERT IGNORE INTO sys_role (id, role_code, role_name, role_scope, remark) VALUES
 (1, 'ADMIN_SUPER', 'Super Admin', 'ADMIN', 'Full admin access'),
-(2, 'MEMBER_NORMAL', 'Normal Member', 'MEMBER', 'Default member role');
+(2, 'MEMBER_NORMAL', 'Normal Member', 'MEMBER', 'Default member role'),
+(3, 'ADMIN_OPERATOR', 'Operator Admin', 'ADMIN', 'Example admin role: back-office access without system/role management');
 
 INSERT IGNORE INTO sys_permission
     (id, perm_code, perm_name, perm_type, parent_id, path, component, icon, hidden, sort, api_path, method) VALUES
@@ -155,15 +156,29 @@ INSERT IGNORE INTO sys_permission
 (23, 'admin:system:role:update',     'Update Role',      'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/role/*',             'PUT'),
 (24, 'admin:system:role:delete',     'Delete Role',      'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/role/*',             'DELETE'),
 (30, 'admin:system:permission:tree','Permission Tree',  'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/permission/tree',    'GET'),
+(40, 'admin:member',                 'Members',          'MENU',   0,  '/member', '#',                       'ep:user-filled', 0, 20, NULL,                            NULL),
+(41, 'admin:member:list',            'Member List',      'MENU',   40, 'list',   'views/member/list/index', 'ep:list',       0, 1,  NULL,                               NULL),
+(42, 'admin:member:view',            'View Member',      'BUTTON', 41, NULL,     NULL,                      NULL,          0, 1,  NULL,                               NULL),
+(43, 'admin:member:add',             'Add Member',       'BUTTON', 41, NULL,     NULL,                      NULL,          0, 2,  NULL,                               NULL),
+(44, 'admin:member:edit',            'Edit Member',      'BUTTON', 41, NULL,     NULL,                      NULL,          0, 3,  NULL,                               NULL),
+(45, 'admin:member:delete',          'Delete Member',    'BUTTON', 41, NULL,     NULL,                      NULL,          0, 4,  NULL,                               NULL),
+(50, 'admin:member:query',           'Query Members',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/list',        'GET'),
+(51, 'admin:member:detail',          'Member Detail',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*',           'GET'),
+(52, 'admin:member:create',          'Create Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member',             'POST'),
+(53, 'admin:member:update',          'Update Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*',           'PUT'),
+(54, 'admin:member:remove',          'Remove Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*',           'DELETE'),
 (3,  'member:auth:info',             'Member Auth Info', 'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/user/api_v1/auth/info',           'GET'),
-(4,  'member:order:view',            'View Orders',      'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/user/api_v1/order/list',          'GET'),
-(5,  'admin:member:list',            'List Members',     'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/list',        'GET');
+(4,  'member:order:view',            'View Orders',      'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/user/api_v1/order/list',          'GET');
 
 INSERT IGNORE INTO sys_i18n_message (ref_type, ref_id, locale, field_name, field_value) VALUES
 ('PERMISSION', 10, 'zh', 'perm_name', '系统管理'),
 ('PERMISSION', 10, 'ja', 'perm_name', 'システム'),
 ('PERMISSION', 11, 'zh', 'perm_name', '角色管理'),
-('PERMISSION', 11, 'ja', 'perm_name', 'ロール管理');
+('PERMISSION', 11, 'ja', 'perm_name', 'ロール管理'),
+('PERMISSION', 40, 'zh', 'perm_name', '会员管理'),
+('PERMISSION', 40, 'ja', 'perm_name', '会員管理'),
+('PERMISSION', 41, 'zh', 'perm_name', '会员列表'),
+('PERMISSION', 41, 'ja', 'perm_name', '会員一覧');
 
 INSERT IGNORE INTO sys_role_permission (role_id, permission_id)
 SELECT 1, id FROM sys_permission WHERE perm_code LIKE 'admin:%';
@@ -171,4 +186,24 @@ SELECT 1, id FROM sys_permission WHERE perm_code LIKE 'admin:%';
 INSERT IGNORE INTO sys_role_permission (role_id, permission_id)
 SELECT 2, id FROM sys_permission WHERE perm_code LIKE 'member:%';
 
--- Default admin account is created on first startup by DataInitializer (admin / Admin@123)
+-- ADMIN_OPERATOR: auth + member read-only (no system/role management, no member write)
+INSERT IGNORE INTO sys_role_permission (role_id, permission_id) VALUES
+(3, 1),
+(3, 2),
+(3, 40),
+(3, 41),
+(3, 42),
+(3, 50),
+(3, 51);
+
+
+INSERT IGNORE INTO sys_admin (id, username, password, nickname, status) VALUES
+(1, 'admin', '$2a$10$DRFSjoDz9NXMt8RQJlvCD.YVRZNmFPWMVzL3NkYKREXbmCHz9TovW', 'Super Admin', 1);
+
+INSERT IGNORE INTO sys_admin_role (admin_id, role_id) VALUES (1, 1);
+
+
+INSERT IGNORE INTO sys_admin (id, username, password, nickname, status) VALUES
+(2, 'operator', '$2a$10$DRFSjoDz9NXMt8RQJlvCD.YVRZNmFPWMVzL3NkYKREXbmCHz9TovW', 'Operator Admin', 1);
+
+INSERT IGNORE INTO sys_admin_role (admin_id, role_id) VALUES (2, 3);
