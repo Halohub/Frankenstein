@@ -63,6 +63,9 @@ public class SaTokenConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> {
+            // 放行 CORS 预检请求（OPTIONS），预检不携带 token
+            SaRouter.match(SaHttpMethod.OPTIONS).stop();
+
             SaRouter.match("/admin/api_v1/**")
                     .notMatch(
                             "/admin/api_v1/auth/login",
