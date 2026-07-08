@@ -41,10 +41,11 @@ public class AdminRoleService {
 
     public PageResult<RoleVO> pageRoles(int pageNum, int pageSize, String roleCode, String roleName) {
         Page<SysRole> page = new Page<>(pageNum, pageSize);
+        // 同时返回 ADMIN 与 MEMBER 作用域角色（MEMBER 角色前端只读展示）
         LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
-                .eq(SysRole::getRoleScope, AuthConstants.ROLE_SCOPE_ADMIN)
                 .like(StringUtils.hasText(roleCode), SysRole::getRoleCode, roleCode)
                 .like(StringUtils.hasText(roleName), SysRole::getRoleName, roleName)
+                .orderByAsc(SysRole::getRoleScope)
                 .orderByAsc(SysRole::getId);
         Page<SysRole> result = sysRoleMapper.selectPage(page, wrapper);
         List<RoleVO> list = result.getRecords().stream().map(this::toRoleVO).toList();
@@ -52,7 +53,8 @@ public class AdminRoleService {
     }
 
     public RoleDetailVO getRoleDetail(Long roleId) {
-        SysRole role = getAdminRoleOrThrow(roleId);
+        // 详情允许读取任意作用域（含 MEMBER，用于只读展示）
+        SysRole role = getRoleOrThrow(roleId);
         RoleDetailVO detail = new RoleDetailVO();
         BeanUtils.copyProperties(toRoleVO(role), detail);
         detail.setPermissionIds(sysRolePermissionMapper.listPermissionIdsByRoleId(roleId));
@@ -134,9 +136,17 @@ public class AdminRoleService {
         }
     }
 
-    private SysRole getAdminRoleOrThrow(Long roleId) {
+    private SysRole getRoleOrThrow(Long roleId) {
         SysRole role = sysRoleMapper.selectById(roleId);
-        if (role == null || !AuthConstants.ROLE_SCOPE_ADMIN.equals(role.getRoleScope())) {
+        if (role == null) {
+            throw new BusinessException(CommonErrorCode.NO_CORRESPONDING_DATA);
+        }
+        return role;
+    }
+
+    private SysRole getAdminRoleOrThrow(Long roleId) {
+        SysRole role = getRoleOrThrow(roleId);
+        if (!AuthConstants.ROLE_SCOPE_ADMIN.equals(role.getRoleScope())) {
             throw new BusinessException(CommonErrorCode.NO_CORRESPONDING_DATA);
         }
         return role;

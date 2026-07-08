@@ -2,6 +2,8 @@ package com.halohub.frankenstein.controller.admin;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.halohub.frankenstein.common.constant.AuthConstants;
+import com.halohub.frankenstein.common.constant.PermissionConstants;
 import com.halohub.frankenstein.common.i18n.RequestLocaleResolver;
 import com.halohub.frankenstein.common.result.Result;
 import com.halohub.frankenstein.dto.RoleSaveRequest;
@@ -41,8 +43,12 @@ public class AdminRbacController {
     @GetMapping("/permission/tree")
     @SaCheckLogin(type = "admin")
     @SaCheckPermission(value = "admin:system:permission:tree", type = "admin")
-    public Result<List<PermissionTreeVO>> permissionTree(HttpServletRequest request) {
-        return Result.success(adminMenuService.listPermissionTree(RequestLocaleResolver.resolve(request)));
+    public Result<List<PermissionTreeVO>> permissionTree(HttpServletRequest request,
+                                                         @RequestParam(required = false, defaultValue = "admin") String scope) {
+        String permPrefix = AuthConstants.ROLE_SCOPE_MEMBER.equalsIgnoreCase(scope) || "member".equalsIgnoreCase(scope)
+                ? PermissionConstants.MEMBER_PERM_PREFIX
+                : PermissionConstants.ADMIN_PERM_PREFIX;
+        return Result.success(adminMenuService.listPermissionTree(permPrefix, RequestLocaleResolver.resolve(request)));
     }
 
     @GetMapping("/role")

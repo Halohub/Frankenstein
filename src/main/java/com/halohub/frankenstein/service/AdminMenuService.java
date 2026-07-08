@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -51,7 +50,11 @@ public class AdminMenuService {
     }
 
     public List<PermissionTreeVO> listPermissionTree(Locale locale) {
-        List<SysPermission> permissions = sysPermissionMapper.listActiveByCodePrefix(PermissionConstants.ADMIN_PERM_PREFIX);
+        return listPermissionTree(PermissionConstants.ADMIN_PERM_PREFIX, locale);
+    }
+
+    public List<PermissionTreeVO> listPermissionTree(String permPrefix, Locale locale) {
+        List<SysPermission> permissions = sysPermissionMapper.listActiveByCodePrefix(permPrefix);
         Map<Long, String> translatedNames = i18nMessageService.batchResolvePermissionNames(
                 permissions.stream().map(SysPermission::getId).toList(),
                 i18nMessageService.normalize(locale));
