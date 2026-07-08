@@ -155,7 +155,16 @@ INSERT IGNORE INTO sys_permission
 (22, 'admin:system:role:create',     'Create Role',      'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/role',               'POST'),
 (23, 'admin:system:role:update',     'Update Role',      'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/role/*',             'PUT'),
 (24, 'admin:system:role:delete',     'Delete Role',      'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/role/*',             'DELETE'),
-(30, 'admin:system:permission:tree','Permission Tree',  'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/permission/tree',    'GET'),
+(30, 'admin:system:permission:tree', 'Permission Tree',  'API',    11, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/permission/tree',    'GET'),
+(15, 'admin:system:admin',           'Admins',           'MENU',   10, 'admin',  'views/system/admin/index','ep:avatar',   0, 2,  NULL,                               NULL),
+(16, 'admin:system:admin:add',       'Add Admin',        'BUTTON', 15, NULL,     NULL,                      NULL,          0, 1,  NULL,                               NULL),
+(17, 'admin:system:admin:edit',      'Edit Admin',       'BUTTON', 15, NULL,     NULL,                      NULL,          0, 2,  NULL,                               NULL),
+(18, 'admin:system:admin:delete',    'Delete Admin',     'BUTTON', 15, NULL,     NULL,                      NULL,          0, 3,  NULL,                               NULL),
+(25, 'admin:system:admin:list',      'List Admins',      'API',    15, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/admin/list',         'GET'),
+(26, 'admin:system:admin:detail',    'Admin Detail',     'API',    15, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/admin/*',            'GET'),
+(27, 'admin:system:admin:create',    'Create Admin',     'API',    15, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/admin',              'POST'),
+(28, 'admin:system:admin:update',    'Update Admin',     'API',    15, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/admin/*',            'PUT'),
+(29, 'admin:system:admin:remove',    'Remove Admin',     'API',    15, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/admin/*',            'DELETE'),
 (40, 'admin:member',                 'Members',          'MENU',   0,  '/member', '#',                       'ep:user-filled', 0, 20, NULL,                            NULL),
 (41, 'admin:member:list',            'Member List',      'MENU',   40, 'list',   'views/member/list/index', 'ep:list',       0, 1,  NULL,                               NULL),
 (42, 'admin:member:view',            'View Member',      'BUTTON', 41, NULL,     NULL,                      NULL,          0, 1,  NULL,                               NULL),
@@ -167,6 +176,7 @@ INSERT IGNORE INTO sys_permission
 (52, 'admin:member:create',          'Create Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member',             'POST'),
 (53, 'admin:member:update',          'Update Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*',           'PUT'),
 (54, 'admin:member:remove',          'Remove Member',    'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*',           'DELETE'),
+(55, 'admin:member:promote',         'Promote Member',   'API',    41, NULL,     NULL,                      NULL,          0, 0,  '/admin/api_v1/member/*/promote',   'POST'),
 (3,  'member:auth:info',             'Member Auth Info', 'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/user/api_v1/auth/info',           'GET'),
 (4,  'member:order:view',            'View Orders',      'API',    0,  NULL,     NULL,                      NULL,          0, 0,  '/user/api_v1/order/list',          'GET');
 
@@ -175,6 +185,8 @@ INSERT IGNORE INTO sys_i18n_message (ref_type, ref_id, locale, field_name, field
 ('PERMISSION', 10, 'ja', 'perm_name', 'システム'),
 ('PERMISSION', 11, 'zh', 'perm_name', '角色管理'),
 ('PERMISSION', 11, 'ja', 'perm_name', 'ロール管理'),
+('PERMISSION', 15, 'zh', 'perm_name', '管理员'),
+('PERMISSION', 15, 'ja', 'perm_name', '管理者'),
 ('PERMISSION', 40, 'zh', 'perm_name', '会员管理'),
 ('PERMISSION', 40, 'ja', 'perm_name', '会員管理'),
 ('PERMISSION', 41, 'zh', 'perm_name', '会员列表'),
@@ -186,15 +198,19 @@ SELECT 1, id FROM sys_permission WHERE perm_code LIKE 'admin:%';
 INSERT IGNORE INTO sys_role_permission (role_id, permission_id)
 SELECT 2, id FROM sys_permission WHERE perm_code LIKE 'member:%';
 
--- ADMIN_OPERATOR: auth + member read-only (no system/role management, no member write)
+-- ADMIN_OPERATOR: auth + member CRU (no delete, no promote)
 INSERT IGNORE INTO sys_role_permission (role_id, permission_id) VALUES
 (3, 1),
 (3, 2),
 (3, 40),
 (3, 41),
 (3, 42),
+(3, 43),
+(3, 44),
 (3, 50),
-(3, 51);
+(3, 51),
+(3, 52),
+(3, 53);
 
 
 INSERT IGNORE INTO sys_admin (id, username, password, nickname, status) VALUES
