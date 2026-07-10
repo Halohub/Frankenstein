@@ -5,6 +5,7 @@ import com.halohub.frankenstein.entity.BizSku;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -17,4 +18,11 @@ public interface BizSkuMapper extends BaseMapper<BizSku> {
     @Select("SELECT COUNT(1) FROM biz_sku WHERE sku_code = #{skuCode} AND deleted = 0 " +
             "AND (#{excludeId} IS NULL OR id <> #{excludeId})")
     long countBySkuCode(@Param("skuCode") String skuCode, @Param("excludeId") Long excludeId);
+
+    @Update("UPDATE biz_sku SET stock = stock - #{quantity} WHERE id = #{skuId} " +
+            "AND stock >= #{quantity} AND deleted = 0")
+    int deductStock(@Param("skuId") Long skuId, @Param("quantity") int quantity);
+
+    @Update("UPDATE biz_sku SET stock = stock + #{quantity} WHERE id = #{skuId} AND deleted = 0")
+    int restoreStock(@Param("skuId") Long skuId, @Param("quantity") int quantity);
 }
